@@ -3,6 +3,7 @@ package srvErr
 import "errors"
 
 var (
-	ErrUserExists  = errors.New("user already exists")
-	ErrInvalidRole = errors.New("invalid role")
+	ErrUserExists         = errors.New("user already exists")
+	ErrInvalidRole        = errors.New("invalid role")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )

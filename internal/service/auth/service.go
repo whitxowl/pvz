@@ -15,6 +15,7 @@ import (
 
 type AuthStorage interface {
 	RegisterUser(ctx context.Context, user *domain.User) (string, error)
+	User(ctx context.Context, email string) (*domain.User, error)
 }
 
 type Service struct {
@@ -80,4 +81,43 @@ func (s *Service) RegisterUser(ctx context.Context, email, password string, role
 	log.InfoContext(ctx, "user registered")
 
 	return user, nil
+}
+
+// Login cheks whether user is registered
+// Returns token
+func (s *Service) Login(ctx context.Context, email, password string) (string, error) {
+	const op = "service.auth.Login"
+
+	log := s.log.With(
+		slog.String("op", op),
+		slog.String("email", email),
+	)
+
+	user, err := s.authStorage.User(ctx, email)
+	if errors.Is(err, storageErr.ErrUserNotFound) {
+		log.DebugContext(ctx, "user does not exist")
+		return "", srvErr.ErrInvalidCredentials
+	}
+	if err != nil {
+		log.ErrorContext(ctx, "failed to get user", slog.String("error", err.Error()))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	if !s.passHasher.Verify(password, user.PassHash) {
+		log.DebugContext(ctx, "invalid credentials")
+		return "", srvErr.ErrInvalidCredentials
+	}
+
+	accessToken, err := s.tokenManager.GenerateToken(domain.TokenClaims{
+		Role: user.Role,
+	})
+
+	if err != nil {
+		log.ErrorContext(ctx, "failed to generate token", slog.String("error", err.Error()))
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.InfoContext(ctx, "user logged in", slog.String("email", email))
+
+	return accessToken, nil
 }

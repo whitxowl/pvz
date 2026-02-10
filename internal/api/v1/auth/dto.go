@@ -14,6 +14,11 @@ type RegisterResponse struct {
 	Role  domain.Role `json:"role"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
 type ErrorResponse struct {
 	Message string `json:"message"`
 }

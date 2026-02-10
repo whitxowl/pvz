@@ -9,6 +9,7 @@ import (
 
 type AuthService interface {
 	RegisterUser(ctx context.Context, email, password string, role domain.Role) (*domain.User, error)
+	Login(ctx context.Context, email, password string) (string, error)
 }
 
 type Handler struct {
@@ -23,4 +24,5 @@ func NewHandler(svc AuthService) *Handler {
 
 func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/register", h.register)
+	router.POST("/login", h.login)
 }

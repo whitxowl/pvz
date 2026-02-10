@@ -28,6 +28,24 @@ func (h *Handler) register(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+func (h *Handler) login(c *gin.Context) {
+	var req LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "invalid request",
+		})
+		return
+	}
+
+	token, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
+	if err != nil {
+		handleServiceError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, token)
+}
+
 func handleServiceError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, srvErr.ErrUserExists):
@@ -37,6 +55,10 @@ func handleServiceError(c *gin.Context, err error) {
 	case errors.Is(err, srvErr.ErrInvalidRole):
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "invalid role",
+		})
+	case errors.Is(err, srvErr.ErrInvalidCredentials):
+		c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "invalid credentials",
 		})
 	default:
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
