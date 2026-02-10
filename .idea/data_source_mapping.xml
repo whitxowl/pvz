@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/internal/storage/postgres/auth/storage.go" value="a1cbc5e3-452a-4caf-bb5c-6911c6e055de" />
+  </component>
+</project>
