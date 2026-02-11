@@ -7,6 +7,7 @@ import (
 	"github.com/whitxowl/pvz.git/internal/app/server"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authService "github.com/whitxowl/pvz.git/internal/service/auth"
+	dummyService "github.com/whitxowl/pvz.git/internal/service/dummy"
 	authStorage "github.com/whitxowl/pvz.git/internal/storage/postgres/auth"
 	"github.com/whitxowl/pvz.git/pkg/hash"
 	"github.com/whitxowl/pvz.git/pkg/jwt"
@@ -31,9 +32,10 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 	)
 	passwordHasher := hash.NewPasswordHasher()
 
+	dummySrv := dummyService.New(log.WithGroup("service.dummy"), tokenManager)
 	authSrv := authService.New(log.WithGroup("service.auth"), authStore, tokenManager, passwordHasher)
 
-	srv := server.New(log, authSrv, cfg.HTTPServer)
+	srv := server.New(log, dummySrv, authSrv, cfg.HTTPServer)
 
 	return &App{
 		Srv: srv,

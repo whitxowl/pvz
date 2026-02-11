@@ -11,14 +11,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	authHdlr "github.com/whitxowl/pvz.git/internal/api/v1/auth"
+	dummyHdlr "github.com/whitxowl/pvz.git/internal/api/v1/dummy"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authSrv "github.com/whitxowl/pvz.git/internal/service/auth"
+	dummySrv "github.com/whitxowl/pvz.git/internal/service/dummy"
 )
 
 type Server struct {
-	log         *slog.Logger
-	authService *authSrv.Service
-	cfg         *config.HTTPServer
+	log          *slog.Logger
+	dummyService *dummySrv.Service
+	authService  *authSrv.Service
+	cfg          *config.HTTPServer
 
 	mu     sync.Mutex
 	server *http.Server
@@ -26,13 +29,15 @@ type Server struct {
 
 func New(
 	log *slog.Logger,
+	dummyService *dummySrv.Service,
 	authService *authSrv.Service,
 	cfg config.HTTPServer,
 ) *Server {
 	return &Server{
-		log:         log,
-		authService: authService,
-		cfg:         &cfg,
+		log:          log,
+		dummyService: dummyService,
+		authService:  authService,
+		cfg:          &cfg,
 	}
 }
 
@@ -52,7 +57,8 @@ func (s *Server) Run(ctx context.Context) error {
 
 	log.InfoContext(ctx, "starting http server")
 
-	authHdlr := authHdlr.NewHandler(s.authService)
+	dummyHdlr := dummyHdlr.New(s.dummyService)
+	authHdlr := authHdlr.New(s.authService)
 
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -60,6 +66,7 @@ func (s *Server) Run(ctx context.Context) error {
 
 	base := router.Group("/")
 
+	dummyHdlr.RegisterRoutes(base)
 	authHdlr.RegisterRoutes(base)
 
 	srv := &http.Server{
