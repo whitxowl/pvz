@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS users
 
 CREATE TABLE IF NOT EXISTS pvz
 (
-    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    registration_date TIMESTAMP NOT NULL DEFAULT NOW(),
+    id                UUID PRIMARY KEY,
+    registration_date TIMESTAMP NOT NULL,
     city              VARCHAR NOT NULL
 );
 

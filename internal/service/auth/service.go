@@ -121,3 +121,8 @@ func (s *Service) Login(ctx context.Context, email, password string) (string, er
 
 	return accessToken, nil
 }
+
+// ValidateToken checks token and returns claims
+func (s *Service) ValidateToken(ctx context.Context, token string) (*domain.TokenClaims, error) {
+	return s.tokenManager.ValidateToken(token)
+}

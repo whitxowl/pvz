@@ -6,4 +6,7 @@ var (
 	ErrUserExists         = errors.New("user already exists")
 	ErrInvalidRole        = errors.New("invalid role")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+
+	ErrPVZExists   = errors.New("pvz already exists")
+	ErrInvalidCity = errors.New("invalid city")
 )
