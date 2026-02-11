@@ -16,7 +16,7 @@ type Handler struct {
 	svc AuthService
 }
 
-func NewHandler(svc AuthService) *Handler {
+func New(svc AuthService) *Handler {
 	return &Handler{
 		svc: svc,
 	}
