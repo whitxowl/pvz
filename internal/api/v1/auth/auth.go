@@ -17,7 +17,7 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.RegisterUser(c.Request.Context(), req.Email, req.Password, req.Role)
+	user, err := h.svc.RegisterUser(c, req.Email, req.Password, req.Role)
 	if err != nil {
 		handleServiceError(c, err)
 		return
@@ -37,7 +37,7 @@ func (h *Handler) login(c *gin.Context) {
 		return
 	}
 
-	token, err := h.svc.Login(c.Request.Context(), req.Email, req.Password)
+	token, err := h.svc.Login(c, req.Email, req.Password)
 	if err != nil {
 		handleServiceError(c, err)
 		return

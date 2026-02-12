@@ -17,7 +17,7 @@ func (h *Handler) dummyLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := h.svc.Login(c.Request.Context(), req.Role)
+	token, err := h.svc.Login(c, req.Role)
 	if errors.Is(err, srvErr.ErrInvalidRole) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "invalid role",

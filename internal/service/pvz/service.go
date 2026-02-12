@@ -10,8 +10,6 @@ import (
 	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
-	"github.com/whitxowl/pvz.git/pkg/hash"
-	"github.com/whitxowl/pvz.git/pkg/jwt"
 )
 
 type PVZStorage interface {
@@ -19,24 +17,18 @@ type PVZStorage interface {
 }
 
 type Service struct {
-	log          *slog.Logger
-	pvzStorage   PVZStorage
-	tokenManager *jwt.TokenManager
-	passHasher   *hash.PasswordHasher
+	log        *slog.Logger
+	pvzStorage PVZStorage
 }
 
 // New returns pvz service instance
 func New(
 	log *slog.Logger,
 	pvzStorage PVZStorage,
-	tokenManager *jwt.TokenManager,
-	passHasher *hash.PasswordHasher,
 ) *Service {
 	return &Service{
-		log:          log,
-		pvzStorage:   pvzStorage,
-		tokenManager: tokenManager,
-		passHasher:   passHasher,
+		log:        log,
+		pvzStorage: pvzStorage,
 	}
 }
 

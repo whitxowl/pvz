@@ -9,8 +9,10 @@ import (
 	authService "github.com/whitxowl/pvz.git/internal/service/auth"
 	dummyService "github.com/whitxowl/pvz.git/internal/service/dummy"
 	pvzService "github.com/whitxowl/pvz.git/internal/service/pvz"
+	rcptService "github.com/whitxowl/pvz.git/internal/service/reception"
 	authStorage "github.com/whitxowl/pvz.git/internal/storage/postgres/auth"
 	pvzStorage "github.com/whitxowl/pvz.git/internal/storage/postgres/pvz"
+	rcptStorage "github.com/whitxowl/pvz.git/internal/storage/postgres/reception"
 	"github.com/whitxowl/pvz.git/pkg/hash"
 	"github.com/whitxowl/pvz.git/pkg/jwt"
 	"github.com/whitxowl/pvz.git/pkg/postgres"
@@ -28,6 +30,7 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 
 	authStore := authStorage.New(pgPool)
 	pvzStore := pvzStorage.New(pgPool)
+	rcptStore := rcptStorage.New(pgPool)
 
 	tokenManager := jwt.NewTokenManager(
 		cfg.JWTConfig.SecretKey,
@@ -37,9 +40,10 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 
 	dummySrv := dummyService.New(log.WithGroup("service.dummy"), tokenManager)
 	authSrv := authService.New(log.WithGroup("service.auth"), authStore, tokenManager, passwordHasher)
-	pvzSrv := pvzService.New(log.WithGroup("service.pvz"), pvzStore, tokenManager, passwordHasher)
+	pvzSrv := pvzService.New(log.WithGroup("service.pvz"), pvzStore)
+	rcptSrv := rcptService.New(log.WithGroup("service.pvz"), rcptStore)
 
-	srv := server.New(log, dummySrv, authSrv, pvzSrv, cfg.HTTPServer)
+	srv := server.New(log, dummySrv, authSrv, pvzSrv, rcptSrv, cfg.HTTPServer)
 
 	return &App{
 		Srv: srv,

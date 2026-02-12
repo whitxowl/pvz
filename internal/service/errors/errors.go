@@ -9,4 +9,6 @@ var (
 
 	ErrPVZExists   = errors.New("pvz already exists")
 	ErrInvalidCity = errors.New("invalid city")
+
+	ErrInProgressReceptionExists = errors.New("in-progress reception exists")
 )
