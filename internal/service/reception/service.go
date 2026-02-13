@@ -30,6 +30,8 @@ func New(
 	}
 }
 
+// TODO: add transactional logic
+
 // CreateReception checks whether there is any in_progress reception
 // for pvz with pvzID and creates reception with in_progress status
 func (s *Service) CreateReception(ctx context.Context, pvzID string) (*domain.Reception, error) {

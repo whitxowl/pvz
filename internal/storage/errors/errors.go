@@ -7,4 +7,6 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 
 	ErrPVZExists = errors.New("pvz already exists")
+
+	ErrNoInProgressReception = errors.New("no in-progress reception")
 )

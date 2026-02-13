@@ -11,4 +11,5 @@ var (
 	ErrInvalidCity = errors.New("invalid city")
 
 	ErrInProgressReceptionExists = errors.New("in-progress reception exists")
+	ErrNoInProgressReception     = errors.New("no in-progress reception exists")
 )

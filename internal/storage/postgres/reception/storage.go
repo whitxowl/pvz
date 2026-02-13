@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/whitxowl/pvz.git/internal/domain"
+	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
 	"github.com/whitxowl/pvz.git/pkg/postgres"
 )
+
+const statusInProgress = domain.StatusInProgress
 
 type Storage struct {
 	Db postgres.DB
@@ -45,13 +48,29 @@ func (s *Storage) ReceptionInProgressExists(ctx context.Context, pvzID string) (
 	const op = "storage.reception.ReceptionInProgress"
 
 	const query = "SELECT EXISTS(SELECT 1 FROM reception WHERE pvz_id = $1 AND status = $2)"
-	status := domain.StatusInProgress
 
 	var exists bool
-	err := s.Db.QueryRow(ctx, query, pvzID, status).Scan(&exists)
+	err := s.Db.QueryRow(ctx, query, pvzID, statusInProgress).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return exists, nil
+}
+
+func (s *Storage) GetReceptionInProgressID(ctx context.Context, pvzID string) (string, error) {
+	const op = "storage.reception.GetReceptionInProgressID"
+
+	const query = "SELECT id FROM reception WHERE pvz_id = $1 AND status = $2"
+
+	var id string
+	err := s.Db.QueryRow(ctx, query, pvzID, statusInProgress).Scan(&id)
+	if postgres.IsNoRowsError(err) {
+		return "", fmt.Errorf("%s: %w", op, storageErr.ErrNoInProgressReception)
+	}
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return id, nil
 }
