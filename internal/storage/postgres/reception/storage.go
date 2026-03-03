@@ -6,6 +6,7 @@ import (
 
 	"github.com/whitxowl/pvz.git/internal/domain"
 	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
+	"github.com/whitxowl/pvz.git/internal/storage/tx"
 	"github.com/whitxowl/pvz.git/pkg/postgres"
 )
 
@@ -37,6 +38,9 @@ func (s *Storage) CreateReception(ctx context.Context, pvzID string, status doma
 		&reception.PvzID,
 		&reception.Status,
 	)
+	if postgres.IsUniqueViolation(err) {
+		return nil, fmt.Errorf("%s: %w", op, storageErr.ErrInProgressReceptionExists)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -44,27 +48,15 @@ func (s *Storage) CreateReception(ctx context.Context, pvzID string, status doma
 	return &reception, nil
 }
 
-func (s *Storage) ReceptionInProgressExists(ctx context.Context, pvzID string) (bool, error) {
-	const op = "storage.reception.ReceptionInProgress"
-
-	const query = "SELECT EXISTS(SELECT 1 FROM reception WHERE pvz_id = $1 AND status = $2)"
-
-	var exists bool
-	err := s.Db.QueryRow(ctx, query, pvzID, statusInProgress).Scan(&exists)
-	if err != nil {
-		return false, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return exists, nil
-}
-
 func (s *Storage) GetReceptionInProgressID(ctx context.Context, pvzID string) (string, error) {
 	const op = "storage.reception.GetReceptionInProgressID"
+
+	db := tx.TxFromCtx(ctx, s.Db)
 
 	const query = "SELECT id FROM reception WHERE pvz_id = $1 AND status = $2"
 
 	var id string
-	err := s.Db.QueryRow(ctx, query, pvzID, statusInProgress).Scan(&id)
+	err := db.QueryRow(ctx, query, pvzID, statusInProgress).Scan(&id)
 	if postgres.IsNoRowsError(err) {
 		return "", fmt.Errorf("%s: %w", op, storageErr.ErrNoInProgressReception)
 	}
@@ -73,4 +65,29 @@ func (s *Storage) GetReceptionInProgressID(ctx context.Context, pvzID string) (s
 	}
 
 	return id, nil
+}
+
+func (s *Storage) CreateProduct(ctx context.Context, productType domain.Type, receptionId string) (*domain.Product, error) {
+	const op = "storage.product.CreateProduct"
+
+	db := tx.TxFromCtx(ctx, s.Db)
+
+	const query = `
+		INSERT INTO products(product_type, reception_id) 
+		VALUES ($1, $2)
+		RETURNING id, date_time, product_type, reception_id
+	`
+
+	var product domain.Product
+	err := db.QueryRow(ctx, query, productType, receptionId).Scan(
+		&product.ID,
+		&product.Date,
+		&product.Type,
+		&product.ReceptionID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &product, nil
 }

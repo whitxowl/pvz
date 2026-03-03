@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 )
 
@@ -17,7 +18,7 @@ func (h *Handler) register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.svc.RegisterUser(c, req.Email, req.Password, req.Role)
+	user, err := h.svc.RegisterUser(c, req.Email, req.Password, domain.Role(req.Role))
 	if err != nil {
 		handleServiceError(c, err)
 		return

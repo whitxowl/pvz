@@ -11,10 +11,22 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	ID       string        `json:"id"`
-	DateTime *time.Time    `json:"dateTime"`
-	PvzID    string        `json:"pvzId"`
-	Status   domain.Status `json:"status"`
+	ID       string     `json:"id"`
+	DateTime *time.Time `json:"dateTime"`
+	PvzID    string     `json:"pvzId"`
+	Status   string     `json:"status"`
+}
+
+type AddProductRequest struct {
+	Type  string `json:"type" binding:"required"`
+	PvzID string `json:"pvzId" binding:"required"`
+}
+
+type AddProductResponse struct {
+	ID          string     `json:"id"`
+	DateTime    *time.Time `json:"dateTime"`
+	Type        string     `json:"product_type"`
+	ReceptionID string     `json:"receptionId"`
 }
 
 type ErrorResponse struct {
@@ -26,6 +38,15 @@ func ToCreateResponse(reception *domain.Reception) CreateResponse {
 		ID:       reception.ID,
 		DateTime: reception.Date,
 		PvzID:    reception.PvzID,
-		Status:   reception.Status,
+		Status:   string(reception.Status),
+	}
+}
+
+func ToAddProductResponse(product *domain.Product) AddProductResponse {
+	return AddProductResponse{
+		ID:          product.ID,
+		DateTime:    product.Date,
+		Type:        string(product.Type),
+		ReceptionID: product.ReceptionID,
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 )
 
@@ -17,7 +18,7 @@ func (h *Handler) dummyLogin(c *gin.Context) {
 		return
 	}
 
-	token, err := h.svc.Login(c, req.Role)
+	token, err := h.svc.Login(c, domain.Role(req.Role))
 	if errors.Is(err, srvErr.ErrInvalidRole) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "invalid role",

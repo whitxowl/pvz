@@ -14,15 +14,24 @@ CREATE TABLE IF NOT EXISTS pvz
     city              VARCHAR NOT NULL
 );
 
+CREATE TYPE reception_status AS ENUM (
+    'in_progress',
+    'closed'
+);
+
 CREATE TABLE IF NOT EXISTS reception
 (
     id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     date_time TIMESTAMP NOT NULL DEFAULT NOW(),
     pvz_id    UUID,
-    status    VARCHAR NOT NULL,
+    status    reception_status NOT NULL,
 
     CONSTRAINT fk_pvz_id FOREIGN KEY (pvz_id) REFERENCES pvz(id) ON DELETE SET NULL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_reception_pvz_in_progress
+ON reception (pvz_id)
+WHERE status = 'in_progress';
 
 CREATE TABLE IF NOT EXISTS products
 (
@@ -35,7 +44,9 @@ CREATE TABLE IF NOT EXISTS products
 );
 
 -- +goose Down
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS pvz;
-DROP TABLE IF EXISTS reception;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS reception;
+DROP TABLE IF EXISTS pvz;
+DROP TABLE IF EXISTS users;
+
+DROP TYPE IF EXISTS reception_status;

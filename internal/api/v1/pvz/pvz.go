@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 )
 
@@ -17,7 +18,7 @@ func (h *Handler) create(c *gin.Context) {
 		return
 	}
 
-	pvz, err := h.pvzService.CreatePVZ(c, req.ID, req.RegistrationDate, req.City)
+	pvz, err := h.pvzService.CreatePVZ(c, req.ID, req.RegistrationDate, domain.City(req.City))
 	if err != nil {
 		handleServiceError(c, err)
 		return

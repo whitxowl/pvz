@@ -12,13 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 	authHdlr "github.com/whitxowl/pvz.git/internal/api/v1/auth"
 	dummyHdlr "github.com/whitxowl/pvz.git/internal/api/v1/dummy"
-	prdctHdlr "github.com/whitxowl/pvz.git/internal/api/v1/product"
 	pvzHdlr "github.com/whitxowl/pvz.git/internal/api/v1/pvz"
 	rcptHdlr "github.com/whitxowl/pvz.git/internal/api/v1/reception"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authSrv "github.com/whitxowl/pvz.git/internal/service/auth"
 	dummySrv "github.com/whitxowl/pvz.git/internal/service/dummy"
-	prdctSrv "github.com/whitxowl/pvz.git/internal/service/product"
 	pvzSrv "github.com/whitxowl/pvz.git/internal/service/pvz"
 	rcptSrv "github.com/whitxowl/pvz.git/internal/service/reception"
 )
@@ -29,7 +27,6 @@ type Server struct {
 	authService  *authSrv.Service
 	pvzService   *pvzSrv.Service
 	rcptService  *rcptSrv.Service
-	prdctService *prdctSrv.Service
 	cfg          *config.HTTPServer
 
 	mu     sync.Mutex
@@ -42,7 +39,6 @@ func New(
 	authService *authSrv.Service,
 	pvzService *pvzSrv.Service,
 	rcptService *rcptSrv.Service,
-	prdctService *prdctSrv.Service,
 
 	cfg config.HTTPServer,
 ) *Server {
@@ -52,7 +48,6 @@ func New(
 		authService:  authService,
 		pvzService:   pvzService,
 		rcptService:  rcptService,
-		prdctService: prdctService,
 		cfg:          &cfg,
 	}
 }
@@ -77,7 +72,6 @@ func (s *Server) Run(ctx context.Context) error {
 	authHdlr := authHdlr.New(s.authService)
 	pvzHdlr := pvzHdlr.New(s.authService, s.pvzService)
 	rcptHdlr := rcptHdlr.New(s.authService, s.rcptService)
-	prdctHdlr := prdctHdlr.New(s.authService, s.prdctService)
 
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -89,7 +83,6 @@ func (s *Server) Run(ctx context.Context) error {
 	authHdlr.RegisterRoutes(base)
 	pvzHdlr.RegisterRoutes(base)
 	rcptHdlr.RegisterRoutes(base)
-	prdctHdlr.RegisterRoutes(base)
 
 	srv := &http.Server{
 		Addr:         s.cfg.Address,

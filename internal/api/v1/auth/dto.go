@@ -3,15 +3,15 @@ package auth
 import "github.com/whitxowl/pvz.git/internal/domain"
 
 type RegisterRequest struct {
-	Email    string      `json:"email" binding:"required,email"`
-	Password string      `json:"password" binding:"required,min=6"`
-	Role     domain.Role `json:"role" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	Role     string `json:"role" binding:"required"`
 }
 
 type RegisterResponse struct {
-	ID    string      `json:"id"`
-	Email string      `json:"email"`
-	Role  domain.Role `json:"role"`
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
 }
 
 type LoginRequest struct {
@@ -27,6 +27,6 @@ func ToRegisterResponse(user *domain.User) RegisterResponse {
 	return RegisterResponse{
 		ID:    user.ID,
 		Email: user.Email,
-		Role:  user.Role,
+		Role:  string(user.Role),
 	}
 }

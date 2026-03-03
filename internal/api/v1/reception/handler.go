@@ -14,6 +14,7 @@ type AuthService interface {
 
 type ReceptionService interface {
 	CreateReception(ctx context.Context, pvzID string) (*domain.Reception, error)
+	Add(ctx context.Context, productType domain.Type, pvzID string) (*domain.Product, error)
 }
 
 type Handler struct {
@@ -33,5 +34,10 @@ func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 		middleware.AuthMiddleware(h.authService),
 		middleware.RequireRoles(domain.RoleEmployee),
 		h.create,
+	)
+	router.POST("/products",
+		middleware.AuthMiddleware(h.authService),
+		middleware.RequireRoles(domain.RoleEmployee),
+		h.add,
 	)
 }

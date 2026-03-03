@@ -8,5 +8,6 @@ var (
 
 	ErrPVZExists = errors.New("pvz already exists")
 
-	ErrNoInProgressReception = errors.New("no in-progress reception")
+	ErrInProgressReceptionExists = errors.New("reception in-progress exists")
+	ErrNoInProgressReception     = errors.New("no in-progress reception")
 )

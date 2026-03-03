@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 )
 
@@ -24,6 +25,26 @@ func (h *Handler) create(c *gin.Context) {
 	}
 
 	response := ToCreateResponse(reception)
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *Handler) add(c *gin.Context) {
+	var req AddProductRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "invalid request",
+		})
+		return
+	}
+
+	product, err := h.receptionService.Add(c, domain.Type(req.Type), req.PvzID)
+	if err != nil {
+		handleServiceError(c, err)
+		return
+	}
+
+	response := ToAddProductResponse(product)
 
 	c.JSON(http.StatusOK, response)
 }

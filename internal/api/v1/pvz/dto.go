@@ -7,15 +7,15 @@ import (
 )
 
 type CreateRequest struct {
-	ID               string      `json:"id" binding:"required"`
-	RegistrationDate *time.Time  `json:"registrationDate" binding:"required"`
-	City             domain.City `json:"city" binding:"required"`
+	ID               string     `json:"id" binding:"required"`
+	RegistrationDate *time.Time `json:"registrationDate" binding:"required"`
+	City             string     `json:"city" binding:"required"`
 }
 
 type CreateResponse struct {
-	ID               string      `json:"id"`
-	RegistrationDate *time.Time  `json:"registrationDate"`
-	City             domain.City `json:"city"`
+	ID               string     `json:"id"`
+	RegistrationDate *time.Time `json:"registrationDate"`
+	City             string     `json:"city"`
 }
 
 type ErrorResponse struct {
@@ -26,6 +26,6 @@ func ToCreateResponse(pvz *domain.PVZ) CreateResponse {
 	return CreateResponse{
 		ID:               pvz.ID,
 		RegistrationDate: pvz.RegistrationDate,
-		City:             pvz.City,
+		City:             string(pvz.City),
 	}
 }
