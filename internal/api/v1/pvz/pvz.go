@@ -43,6 +43,24 @@ func (h *Handler) closeLastReception(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) deleteLastProduct(c *gin.Context) {
+	pvzID := c.Param("pvzId")
+
+	deleted, err := h.pvzService.DeleteLastProduct(c, pvzID)
+	if err != nil {
+		handleServiceError(c, err)
+		return
+	}
+
+	if !deleted {
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "invalid request",
+		})
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func handleServiceError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, srvErr.ErrPVZExists):

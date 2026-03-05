@@ -18,6 +18,7 @@ type PVZStorage interface {
 
 type ReceptionStorage interface {
 	SetStatusClosed(ctx context.Context, pvzID string) (*domain.Reception, error)
+	DeleteLastAddedProduct(ctx context.Context, pvzID string) (bool, error)
 }
 
 type Service struct {
@@ -101,4 +102,21 @@ func (s *Service) CloseReception(ctx context.Context, pvzID string) (*domain.Rec
 	reception.Status = domain.StatusInProgress
 
 	return reception, nil
+}
+
+func (s *Service) DeleteLastProduct(ctx context.Context, pvzID string) (bool, error) {
+	const op = "storage.pvz.DeleteLastProduct"
+
+	log := s.log.With(
+		slog.String("op", op),
+		slog.String("pvzID", pvzID),
+	)
+
+	deleted, err := s.recStorage.DeleteLastAddedProduct(ctx, pvzID)
+	if err != nil {
+		log.ErrorContext(ctx, "failed to delete last product", slog.String("error", err.Error()))
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return deleted, nil
 }

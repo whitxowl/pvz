@@ -123,3 +123,31 @@ func (s *Storage) CreateProduct(
 
 	return &product, nil
 }
+
+func (s *Storage) DeleteLastAddedProduct(ctx context.Context, pvzID string) (bool, error) {
+	const op = "storage.reception.DeleteLastAddedProduct"
+
+	const query = `
+		WITH deleted AS (
+			DELETE FROM products
+			WHERE id = (
+				SELECT p.id FROM products p
+				JOIN reception r ON r.id = p.reception_id
+				WHERE r.pvz_id = $1
+				  AND r.status = 'in_progress'
+				ORDER BY p.date_time DESC
+				LIMIT 1
+			)
+			RETURNING id
+		)
+		SELECT EXISTS(SELECT 1 FROM deleted)
+	`
+
+	var deleted bool
+	err := s.Db.QueryRow(ctx, query, pvzID).Scan(&deleted)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return deleted, nil
+}

@@ -16,6 +16,7 @@ type AuthService interface {
 type PVZService interface {
 	CreatePVZ(ctx context.Context, id string, registrationDate *time.Time, city domain.City) (*domain.PVZ, error)
 	CloseReception(ctx context.Context, pvzID string) (*domain.Reception, error)
+	DeleteLastProduct(ctx context.Context, pvzID string) (bool, error)
 }
 
 type Handler struct {
@@ -40,5 +41,10 @@ func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 		middleware.AuthMiddleware(h.authService),
 		middleware.RequireRoles(domain.RoleEmployee),
 		h.closeLastReception,
+	)
+	router.POST("/pvz/:pvzId/delete_last_product",
+		middleware.AuthMiddleware(h.authService),
+		middleware.RequireRoles(domain.RoleEmployee),
+		h.deleteLastProduct,
 	)
 }
