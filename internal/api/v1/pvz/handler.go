@@ -15,6 +15,7 @@ type AuthService interface {
 
 type PVZService interface {
 	CreatePVZ(ctx context.Context, id string, registrationDate *time.Time, city domain.City) (*domain.PVZ, error)
+	CloseReception(ctx context.Context, pvzID string) (*domain.Reception, error)
 }
 
 type Handler struct {
@@ -34,5 +35,10 @@ func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 		middleware.AuthMiddleware(h.authService),
 		middleware.RequireRoles(domain.RoleModerator),
 		h.create,
+	)
+	router.POST("/pvz/:pvzId/close_last_reception",
+		middleware.AuthMiddleware(h.authService),
+		middleware.RequireRoles(domain.RoleEmployee),
+		h.closeLastReception,
 	)
 }

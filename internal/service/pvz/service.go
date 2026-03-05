@@ -16,19 +16,26 @@ type PVZStorage interface {
 	CreatePVZ(ctx context.Context, pvz *domain.PVZ) error
 }
 
+type ReceptionStorage interface {
+	SetStatusClosed(ctx context.Context, pvzID string) (*domain.Reception, error)
+}
+
 type Service struct {
 	log        *slog.Logger
 	pvzStorage PVZStorage
+	recStorage ReceptionStorage
 }
 
 // New returns pvz service instance
 func New(
 	log *slog.Logger,
 	pvzStorage PVZStorage,
+	recStorage ReceptionStorage,
 ) *Service {
 	return &Service{
 		log:        log,
 		pvzStorage: pvzStorage,
+		recStorage: recStorage,
 	}
 }
 
@@ -69,4 +76,29 @@ func (s *Service) CreatePVZ(
 	log.InfoContext(ctx, "created pvz", slog.String("id", id))
 
 	return pvz, nil
+}
+
+func (s *Service) CloseReception(ctx context.Context, pvzID string) (*domain.Reception, error) {
+	const op = "storage.pvz.CloseReception"
+
+	log := s.log.With(
+		slog.String("op", op),
+		slog.String("pvzID", pvzID),
+	)
+
+	reception, err := s.recStorage.SetStatusClosed(ctx, pvzID)
+	if errors.Is(err, storageErr.ErrNoInProgressReception) {
+		log.DebugContext(ctx, "in_progress reception not found", slog.String("pvzID", pvzID))
+		return nil, srvErr.ErrNoInProgressReception
+	}
+	if err != nil {
+		log.ErrorContext(ctx, "failed to close reception", slog.String("error", err.Error()))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.InfoContext(ctx, "close reception", slog.String("id", reception.ID))
+
+	reception.Status = domain.StatusInProgress
+
+	return reception, nil
 }

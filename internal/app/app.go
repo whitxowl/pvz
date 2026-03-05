@@ -43,7 +43,7 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 
 	dummySrv := dummyService.New(log.WithGroup("service.dummy"), tokenManager)
 	authSrv := authService.New(log.WithGroup("service.auth"), authStore, tokenManager, passwordHasher)
-	pvzSrv := pvzService.New(log.WithGroup("service.pvz"), pvzStore)
+	pvzSrv := pvzService.New(log.WithGroup("service.pvz"), pvzStore, rcptStore)
 	rcptSrv := rcptService.New(log.WithGroup("service.pvz"), rcptStore, txManager)
 
 	srv := server.New(log, dummySrv, authSrv, pvzSrv, rcptSrv, cfg.HTTPServer)

@@ -29,6 +29,20 @@ func (h *Handler) create(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) closeLastReception(c *gin.Context) {
+	pvzID := c.Param("pvzId")
+
+	reception, err := h.pvzService.CloseReception(c, pvzID)
+	if err != nil {
+		handleServiceError(c, err)
+		return
+	}
+
+	response := ToCloseReceptionResponse(reception)
+
+	c.JSON(http.StatusOK, response)
+}
+
 func handleServiceError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, srvErr.ErrPVZExists):
@@ -38,6 +52,10 @@ func handleServiceError(c *gin.Context, err error) {
 	case errors.Is(err, srvErr.ErrInvalidCity):
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: "invalid city",
+		})
+	case errors.Is(err, srvErr.ErrNoInProgressReception):
+		c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "invalid request",
 		})
 	default:
 		c.JSON(http.StatusInternalServerError, ErrorResponse{

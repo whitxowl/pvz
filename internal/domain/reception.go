@@ -6,7 +6,7 @@ type Status string
 
 const (
 	StatusInProgress Status = "in_progress"
-	StatusClosed     Status = "close"
+	StatusClosed     Status = "closed"
 )
 
 func (s Status) IsValid() bool {

@@ -18,6 +18,13 @@ type CreateResponse struct {
 	City             string     `json:"city"`
 }
 
+type CloseReceptionResponse struct {
+	ID       string     `json:"id"`
+	DateTime *time.Time `json:"dateTime"`
+	PvzID    string     `json:"pvzId"`
+	Status   string     `json:"status"`
+}
+
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
@@ -27,5 +34,14 @@ func ToCreateResponse(pvz *domain.PVZ) CreateResponse {
 		ID:               pvz.ID,
 		RegistrationDate: pvz.RegistrationDate,
 		City:             string(pvz.City),
+	}
+}
+
+func ToCloseReceptionResponse(reception *domain.Reception) CloseReceptionResponse {
+	return CloseReceptionResponse{
+		ID:       reception.ID,
+		DateTime: reception.Date,
+		PvzID:    reception.PvzID,
+		Status:   string(reception.Status),
 	}
 }

@@ -11,6 +11,7 @@ import (
 )
 
 const statusInProgress = domain.StatusInProgress
+const statusClosed = domain.StatusClosed
 
 type Storage struct {
 	Db postgres.DB
@@ -67,8 +68,39 @@ func (s *Storage) GetReceptionInProgressID(ctx context.Context, pvzID string) (s
 	return id, nil
 }
 
-func (s *Storage) CreateProduct(ctx context.Context, productType domain.Type, receptionId string) (*domain.Product, error) {
-	const op = "storage.product.CreateProduct"
+func (s *Storage) SetStatusClosed(ctx context.Context, pvzID string) (*domain.Reception, error) {
+	const op = "storage.reception.SetStatusClosed"
+
+	const query = `
+		UPDATE reception
+		SET status = $1
+		WHERE pvz_id = $2 AND status = $3
+		RETURNING id, date_time, pvz_id, status
+	`
+
+	var reception domain.Reception
+	err := s.Db.QueryRow(ctx, query, statusClosed, pvzID, statusInProgress).Scan(
+		&reception.ID,
+		&reception.Date,
+		&reception.PvzID,
+		&reception.Status,
+	)
+	if postgres.IsNoRowsError(err) {
+		return nil, fmt.Errorf("%s: %w", op, storageErr.ErrNoInProgressReception)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &reception, nil
+}
+
+func (s *Storage) CreateProduct(
+	ctx context.Context,
+	productType domain.Type,
+	receptionId string,
+) (*domain.Product, error) {
+	const op = "storage.reception.CreateProduct"
 
 	db := tx.TxFromCtx(ctx, s.Db)
 
