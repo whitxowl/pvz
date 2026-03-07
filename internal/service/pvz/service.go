@@ -14,11 +14,18 @@ import (
 
 type PVZStorage interface {
 	CreatePVZ(ctx context.Context, pvz *domain.PVZ) error
+	GetPVZList(ctx context.Context, page int, limit int) ([]*domain.PVZ, error)
 }
 
 type ReceptionStorage interface {
 	SetStatusClosed(ctx context.Context, pvzID string) (*domain.Reception, error)
 	DeleteLastAddedProduct(ctx context.Context, pvzID string) (bool, error)
+	GetReceptionsByPVZIDs(
+		ctx context.Context,
+		pvzIDs []string,
+		startTime *time.Time,
+		endTime *time.Time,
+	) (map[string][]*domain.Reception, error)
 }
 
 type Service struct {
@@ -119,4 +126,39 @@ func (s *Service) DeleteLastProduct(ctx context.Context, pvzID string) (bool, er
 	}
 
 	return deleted, nil
+}
+
+func (s *Service) GetPVZList(
+	ctx context.Context,
+	page int,
+	limit int,
+	startTime *time.Time,
+	endTime *time.Time,
+) ([]*domain.PVZ, error) {
+	const op = "service.pvz.GetPVZList"
+
+	pvzList, err := s.pvzStorage.GetPVZList(ctx, page, limit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	pvzIDs := make([]string, len(pvzList))
+	for i, pvz := range pvzList {
+		pvzIDs[i] = pvz.ID
+	}
+
+	receptionsByPVZ, err := s.recStorage.GetReceptionsByPVZIDs(ctx, pvzIDs, startTime, endTime)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	for _, pvz := range pvzList {
+		if receptions, ok := receptionsByPVZ[pvz.ID]; ok {
+			for _, r := range receptions {
+				pvz.Receptions = append(pvz.Receptions, *r)
+			}
+		}
+	}
+
+	return pvzList, nil
 }

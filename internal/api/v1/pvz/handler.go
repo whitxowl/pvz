@@ -17,6 +17,7 @@ type PVZService interface {
 	CreatePVZ(ctx context.Context, id string, registrationDate *time.Time, city domain.City) (*domain.PVZ, error)
 	CloseReception(ctx context.Context, pvzID string) (*domain.Reception, error)
 	DeleteLastProduct(ctx context.Context, pvzID string) (bool, error)
+	GetPVZList(ctx context.Context, page int, limit int, startTime *time.Time, endTime *time.Time) ([]*domain.PVZ, error)
 }
 
 type Handler struct {
@@ -46,5 +47,10 @@ func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
 		middleware.AuthMiddleware(h.authService),
 		middleware.RequireRoles(domain.RoleEmployee),
 		h.deleteLastProduct,
+	)
+	router.GET("/pvz",
+		middleware.AuthMiddleware(h.authService),
+		middleware.RequireRoles(domain.RoleModerator, domain.RoleEmployee),
+		h.get,
 	)
 }

@@ -35,3 +35,34 @@ func (s *Storage) CreatePVZ(ctx context.Context, pvz *domain.PVZ) error {
 
 	return nil
 }
+
+func (s *Storage) GetPVZList(ctx context.Context, page int, limit int) ([]*domain.PVZ, error) {
+	const op = "storage.pvz.GetPVZList"
+
+	const query = `
+        SELECT id, registration_date, city FROM pvz
+        ORDER BY registration_date DESC
+        LIMIT $1 OFFSET $2
+    `
+
+	rows, err := s.Db.Query(ctx, query, limit, (page-1)*limit)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var pvzList []*domain.PVZ
+	for rows.Next() {
+		var pvz domain.PVZ
+		if err := rows.Scan(&pvz.ID, &pvz.RegistrationDate, &pvz.City); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		pvzList = append(pvzList, &pvz)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return pvzList, nil
+}

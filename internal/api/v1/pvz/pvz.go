@@ -3,6 +3,8 @@ package pvz
 import (
 	"errors"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/whitxowl/pvz.git/internal/domain"
@@ -59,6 +61,53 @@ func (h *Handler) deleteLastProduct(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (h *Handler) get(c *gin.Context) {
+	page := 1
+	limit := 10
+
+	if p := c.Query("page"); p != "" {
+		if v, err := strconv.Atoi(p); err == nil && v >= 1 {
+			page = v
+		}
+	}
+	if l := c.Query("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil && v >= 1 && v <= 30 {
+			limit = v
+		}
+	}
+
+	var startTime, endTime *time.Time
+	if s := c.Query("startDate"); s != "" {
+		t, err := time.Parse(time.RFC3339, s)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "invalid startDate format"})
+			return
+		}
+		startTime = &t
+	}
+	if e := c.Query("endDate"); e != "" {
+		t, err := time.Parse(time.RFC3339, e)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "invalid endDate format"})
+			return
+		}
+		endTime = &t
+	}
+
+	pvzList, err := h.pvzService.GetPVZList(c.Request.Context(), page, limit, startTime, endTime)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "internal server error"})
+		return
+	}
+
+	response := make([]PVZResponse, len(pvzList))
+	for i, pvz := range pvzList {
+		response[i] = ToPVZResponse(pvz)
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func handleServiceError(c *gin.Context, err error) {

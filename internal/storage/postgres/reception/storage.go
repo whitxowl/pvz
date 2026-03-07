@@ -3,7 +3,9 @@ package reception
 import (
 	"context"
 	"fmt"
+	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/whitxowl/pvz.git/internal/domain"
 	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
 	"github.com/whitxowl/pvz.git/internal/storage/tx"
@@ -150,4 +152,98 @@ func (s *Storage) DeleteLastAddedProduct(ctx context.Context, pvzID string) (boo
 	}
 
 	return deleted, nil
+}
+
+func (s *Storage) GetReceptionsByPVZIDs(
+	ctx context.Context,
+	pvzIDs []string,
+	startTime *time.Time,
+	endTime *time.Time,
+) (map[string][]*domain.Reception, error) {
+	const op = "storage.reception.GetReceptionsByPVZIs"
+
+	if len(pvzIDs) == 0 {
+		return map[string][]*domain.Reception{}, nil
+	}
+
+	builder := sq.Select("id, date_time, pvz_id, status").
+		From("reception").
+		Where(sq.Eq{"pvz_id": pvzIDs}).
+		OrderBy("date_time DESC").
+		PlaceholderFormat(sq.Dollar)
+
+	if startTime != nil {
+		builder = builder.Where(sq.GtOrEq{"date_time": startTime})
+	}
+	if endTime != nil {
+		builder = builder.Where(sq.LtOrEq{"date_time": endTime})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	rows, err := s.Db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	result := map[string][]*domain.Reception{}
+	var receptionIDs []string
+
+	for rows.Next() {
+		var r domain.Reception
+		if err := rows.Scan(&r.ID, &r.Date, &r.PvzID, &r.Status); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		result[r.PvzID] = append(result[r.PvzID], &r)
+		receptionIDs = append(receptionIDs, r.ID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if len(receptionIDs) == 0 {
+		return result, nil
+	}
+
+	productQuery, productArgs, err := sq.Select("id", "date_time", "product_type", "reception_id").
+		From("products").
+		Where(sq.Eq{"reception_id": receptionIDs}).
+		OrderBy("date_time DESC").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	productRows, err := s.Db.Query(ctx, productQuery, productArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer productRows.Close()
+
+	receptionByID := map[string]*domain.Reception{}
+	for _, receptions := range result {
+		for _, r := range receptions {
+			receptionByID[r.ID] = r
+		}
+	}
+
+	for productRows.Next() {
+		var p domain.Product
+		if err := productRows.Scan(&p.ID, &p.Date, &p.Type, &p.ReceptionID); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		if r, ok := receptionByID[p.ReceptionID]; ok {
+			r.Products = append(r.Products, p)
+		}
+	}
+	if err := productRows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return result, nil
 }
