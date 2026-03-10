@@ -1,0 +1,20 @@
+all: false
+dir: "{{.InterfaceDir}}/mocks"
+filename: "{{.InterfaceName | lower}}_mock.go"
+structname: "Mock{{.InterfaceName}}"
+formatter: goimports
+pkgname: mocks
+template: testify
+
+packages:
+  github.com/whitxowl/pvz.git/internal/service/auth:
+    interfaces:
+      AuthStorage:
+  github.com/whitxowl/pvz.git/internal/service/pvz:
+    interfaces:
+      PVZStorage:
+      ReceptionStorage:
+  github.com/whitxowl/pvz.git/internal/service/reception:
+    interfaces:
+      ReceptionStorage:
+      TxManager:
