@@ -66,3 +66,30 @@ func (s *Storage) GetPVZList(ctx context.Context, page int, limit int) ([]*domai
 
 	return pvzList, nil
 }
+
+func (s *Storage) GetAll(ctx context.Context) ([]*domain.PVZ, error) {
+	const op = "storage.pvz.GetAll"
+
+	const query = "SELECT id, registration_date, city FROM pvz"
+
+	rows, err := s.Db.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var pvzs []*domain.PVZ
+	for rows.Next() {
+		var pvz domain.PVZ
+		if err := rows.Scan(&pvz.ID, &pvz.RegistrationDate, &pvz.City); err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		pvzs = append(pvzs, &pvz)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return pvzs, nil
+}

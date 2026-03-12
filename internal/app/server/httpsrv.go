@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	authHdlr "github.com/whitxowl/pvz.git/internal/api/v1/auth"
-	dummyHdlr "github.com/whitxowl/pvz.git/internal/api/v1/dummy"
-	pvzHdlr "github.com/whitxowl/pvz.git/internal/api/v1/pvz"
-	rcptHdlr "github.com/whitxowl/pvz.git/internal/api/v1/reception"
+	authHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/auth"
+	dummyHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/dummy"
+	pvzHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/pvz"
+	rcptHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/reception"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authSrv "github.com/whitxowl/pvz.git/internal/service/auth"
 	dummySrv "github.com/whitxowl/pvz.git/internal/service/dummy"
@@ -63,7 +63,7 @@ func (s *Server) Run(ctx context.Context) error {
 
 	log := s.log.With(
 		slog.String("op", op),
-		slog.String("address", s.cfg.Address),
+		slog.String("address", s.cfg.Address()),
 	)
 
 	log.InfoContext(ctx, "starting http server")
@@ -85,7 +85,7 @@ func (s *Server) Run(ctx context.Context) error {
 	rcptHdlr.RegisterRoutes(base)
 
 	srv := &http.Server{
-		Addr:         s.cfg.Address,
+		Addr:         s.cfg.Address(),
 		Handler:      router,
 		ReadTimeout:  s.cfg.Timeout,
 		WriteTimeout: s.cfg.Timeout,

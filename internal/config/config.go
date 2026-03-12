@@ -12,14 +12,29 @@ import (
 type Config struct {
 	Env           string `env:"ENV" envDefault:"local"`
 	HTTPServer    `env-prefix:"HTTP_"`
+	GRPCServer    `env-prefix:"GRPC_"`
 	StorageConfig `env-prefix:"DB_"`
 	JWTConfig     `env-prefix:"JWT_"`
 }
 
 type HTTPServer struct {
-	Address     string        `env:"ADDRESS" envDefault:"localhost:8080"`
-	Timeout     time.Duration `env:"TIMEOUT" envDefault:"5s"`
-	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" envDefault:"60s"`
+	Host        string        `env:"HOST" env-default:"localhost"`
+	Port        int           `env:"PORT" env-default:"8080"`
+	Timeout     time.Duration `env:"TIMEOUT" env-default:"5s"`
+	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" env-default:"60s"`
+}
+
+func (s *HTTPServer) Address() string {
+	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+}
+
+type GRPCServer struct {
+	Host string `env:"HOST" env-default:"localhost"`
+	Port int    `env:"PORT" env-default:"3000"`
+}
+
+func (s *GRPCServer) Address() string {
+	return fmt.Sprintf("%s:%d", s.Host, s.Port)
 }
 
 type StorageConfig struct {

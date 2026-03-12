@@ -95,6 +95,68 @@ func (_c *MockPVZStorage_CreatePVZ_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// GetAll provides a mock function for the type MockPVZStorage
+func (_mock *MockPVZStorage) GetAll(ctx context.Context) ([]*domain.PVZ, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAll")
+	}
+
+	var r0 []*domain.PVZ
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]*domain.PVZ, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []*domain.PVZ); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.PVZ)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPVZStorage_GetAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAll'
+type MockPVZStorage_GetAll_Call struct {
+	*mock.Call
+}
+
+// GetAll is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockPVZStorage_Expecter) GetAll(ctx interface{}) *MockPVZStorage_GetAll_Call {
+	return &MockPVZStorage_GetAll_Call{Call: _e.mock.On("GetAll", ctx)}
+}
+
+func (_c *MockPVZStorage_GetAll_Call) Run(run func(ctx context.Context)) *MockPVZStorage_GetAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPVZStorage_GetAll_Call) Return(pVZs []*domain.PVZ, err error) *MockPVZStorage_GetAll_Call {
+	_c.Call.Return(pVZs, err)
+	return _c
+}
+
+func (_c *MockPVZStorage_GetAll_Call) RunAndReturn(run func(ctx context.Context) ([]*domain.PVZ, error)) *MockPVZStorage_GetAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPVZList provides a mock function for the type MockPVZStorage
 func (_mock *MockPVZStorage) GetPVZList(ctx context.Context, page int, limit int) ([]*domain.PVZ, error) {
 	ret := _mock.Called(ctx, page, limit)

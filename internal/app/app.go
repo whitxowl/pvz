@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	grpcsrv "github.com/whitxowl/pvz.git/internal/app/grpc"
 	"github.com/whitxowl/pvz.git/internal/app/server"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authService "github.com/whitxowl/pvz.git/internal/service/auth"
@@ -20,7 +21,8 @@ import (
 )
 
 type App struct {
-	Srv *server.Server
+	Srv     *server.Server
+	GRPCSrv *grpcsrv.Server
 }
 
 func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
@@ -47,8 +49,10 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 	rcptSrv := rcptService.New(log.WithGroup("service.pvz"), rcptStore, txManager)
 
 	srv := server.New(log, dummySrv, authSrv, pvzSrv, rcptSrv, cfg.HTTPServer)
+	grpcSrv := grpcsrv.New(log.WithGroup("grpc"), pvzSrv, cfg.GRPCServer)
 
 	return &App{
-		Srv: srv,
+		Srv:     srv,
+		GRPCSrv: grpcSrv,
 	}
 }

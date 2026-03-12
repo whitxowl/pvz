@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/whitxowl/pvz.git/internal/api/middleware"
+	"github.com/whitxowl/pvz.git/internal/api/rest/middleware"
 	"github.com/whitxowl/pvz.git/internal/domain"
 )
 

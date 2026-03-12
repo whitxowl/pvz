@@ -15,6 +15,7 @@ import (
 type PVZStorage interface {
 	CreatePVZ(ctx context.Context, pvz *domain.PVZ) error
 	GetPVZList(ctx context.Context, page int, limit int) ([]*domain.PVZ, error)
+	GetAll(ctx context.Context) ([]*domain.PVZ, error)
 }
 
 type ReceptionStorage interface {
@@ -139,6 +140,7 @@ func (s *Service) GetPVZList(
 
 	pvzList, err := s.pvzStorage.GetPVZList(ctx, page, limit)
 	if err != nil {
+		s.log.ErrorContext(ctx, "failed to get pvz list", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -149,6 +151,7 @@ func (s *Service) GetPVZList(
 
 	receptionsByPVZ, err := s.recStorage.GetReceptionsByPVZIDs(ctx, pvzIDs, startTime, endTime)
 	if err != nil {
+		s.log.ErrorContext(ctx, "failed to get receptions by PVZ IDs", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -161,4 +164,16 @@ func (s *Service) GetPVZList(
 	}
 
 	return pvzList, nil
+}
+
+func (s *Service) GetAll(ctx context.Context) ([]*domain.PVZ, error) {
+	const op = "service.pvz.GetAll"
+
+	pvzs, err := s.pvzStorage.GetAll(ctx)
+	if err != nil {
+		s.log.ErrorContext(ctx, "failed to get pvzs", slog.String("error", err.Error()))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return pvzs, nil
 }

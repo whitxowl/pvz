@@ -36,6 +36,7 @@ func main() {
 	application := app.New(ctx, log, cfg)
 
 	go application.Srv.MustRun(ctx)
+	go application.GRPCSrv.MustRun(ctx)
 
 	<-ctx.Done()
 
