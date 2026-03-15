@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -37,6 +38,7 @@ func main() {
 
 	go application.Srv.MustRun(ctx)
 	go application.GRPCSrv.MustRun(ctx)
+	go application.MetricsSrv.MustRun(ctx)
 
 	<-ctx.Done()
 
@@ -45,10 +47,28 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
-	err := application.Srv.Stop(shutdownCtx)
-	if err != nil {
-		log.Error("failed to stop http_server gracefully", "err", err)
-	} else {
-		log.Info("PR Reviewer application http_server stopped gracefully")
-	}
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		if err := application.Srv.Stop(shutdownCtx); err != nil {
+			log.Error("failed to stop http server gracefully", "err", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		application.GRPCSrv.Stop(shutdownCtx)
+	}()
+
+	go func() {
+		defer wg.Done()
+		if err := application.MetricsSrv.Stop(shutdownCtx); err != nil {
+			log.Error("failed to stop metrics server gracefully", "err", err)
+		}
+	}()
+
+	wg.Wait()
+	log.Info("application stopped gracefully")
 }

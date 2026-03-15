@@ -9,6 +9,7 @@ import (
 	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
+	"github.com/whitxowl/pvz.git/pkg/metrics"
 )
 
 type ReceptionStorage interface {
@@ -57,6 +58,8 @@ func (s *Service) CreateReception(ctx context.Context, pvzID string) (*domain.Re
 	}
 
 	log.InfoContext(ctx, "created reception", slog.String("id", pvzID))
+
+	metrics.ReceptionsCreatedTotal.Inc()
 	return reception, nil
 }
 
@@ -98,5 +101,6 @@ func (s *Service) Add(ctx context.Context, productType domain.Type, pvzID string
 		slog.String("reception_id", receptionID),
 		slog.String("pvzID", pvzID))
 
+	metrics.ProductsAddedTotal.Inc()
 	return product, nil
 }

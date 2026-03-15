@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	grpcsrv "github.com/whitxowl/pvz.git/internal/app/grpc"
+	"github.com/whitxowl/pvz.git/internal/app/metricserver"
 	"github.com/whitxowl/pvz.git/internal/app/server"
 	"github.com/whitxowl/pvz.git/internal/config"
 	authService "github.com/whitxowl/pvz.git/internal/service/auth"
@@ -17,12 +18,14 @@ import (
 	"github.com/whitxowl/pvz.git/internal/storage/tx"
 	"github.com/whitxowl/pvz.git/pkg/hash"
 	"github.com/whitxowl/pvz.git/pkg/jwt"
+	"github.com/whitxowl/pvz.git/pkg/metrics"
 	"github.com/whitxowl/pvz.git/pkg/postgres"
 )
 
 type App struct {
-	Srv     *server.Server
-	GRPCSrv *grpcsrv.Server
+	Srv        *server.Server
+	GRPCSrv    *grpcsrv.Server
+	MetricsSrv *metricserver.Server
 }
 
 func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
@@ -51,8 +54,12 @@ func New(ctx context.Context, log *slog.Logger, cfg *config.Config) *App {
 	srv := server.New(log, dummySrv, authSrv, pvzSrv, rcptSrv, cfg.HTTPServer)
 	grpcSrv := grpcsrv.New(log.WithGroup("grpc"), pvzSrv, cfg.GRPCServer)
 
+	metrics.MustRegister()
+	metricsSrv := metricserver.New(log.WithGroup("metrics"), cfg.MetricsServer)
+
 	return &App{
-		Srv:     srv,
-		GRPCSrv: grpcSrv,
+		Srv:        srv,
+		GRPCSrv:    grpcSrv,
+		MetricsSrv: metricsSrv,
 	}
 }

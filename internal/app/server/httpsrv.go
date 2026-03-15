@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/whitxowl/pvz.git/internal/api/rest/middleware"
 	authHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/auth"
 	dummyHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/dummy"
 	pvzHdlr "github.com/whitxowl/pvz.git/internal/api/rest/v1/pvz"
@@ -76,6 +77,7 @@ func (s *Server) Run(ctx context.Context) error {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(ginLogger(s.log))
+	router.Use(middleware.MetricsMiddleware())
 
 	base := router.Group("/")
 

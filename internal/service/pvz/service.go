@@ -10,6 +10,7 @@ import (
 	"github.com/whitxowl/pvz.git/internal/domain"
 	srvErr "github.com/whitxowl/pvz.git/internal/service/errors"
 	storageErr "github.com/whitxowl/pvz.git/internal/storage/errors"
+	"github.com/whitxowl/pvz.git/pkg/metrics"
 )
 
 type PVZStorage interface {
@@ -84,6 +85,7 @@ func (s *Service) CreatePVZ(
 
 	log.InfoContext(ctx, "created pvz", slog.String("id", id))
 
+	metrics.PVZCreatedTotal.Inc()
 	return pvz, nil
 }
 

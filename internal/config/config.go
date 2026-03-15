@@ -13,6 +13,7 @@ type Config struct {
 	Env           string `env:"ENV" envDefault:"local"`
 	HTTPServer    `env-prefix:"HTTP_"`
 	GRPCServer    `env-prefix:"GRPC_"`
+	MetricsServer `env-prefix:"METRICS_"`
 	StorageConfig `env-prefix:"DB_"`
 	JWTConfig     `env-prefix:"JWT_"`
 }
@@ -34,6 +35,15 @@ type GRPCServer struct {
 }
 
 func (s *GRPCServer) Address() string {
+	return fmt.Sprintf("%s:%d", s.Host, s.Port)
+}
+
+type MetricsServer struct {
+	Host string `env:"HOST" env-default:"localhost"`
+	Port int    `env:"PORT" env-default:"9000"`
+}
+
+func (s *MetricsServer) Address() string {
 	return fmt.Sprintf("%s:%d", s.Host, s.Port)
 }
 
